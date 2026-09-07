@@ -4,6 +4,8 @@ import { loadAuthorRecommendations } from "@/lib/author-recommendations";
 import { loadProfileNames } from "@/lib/public-profiles";
 import { Recommender } from "@/components/recommender";
 
+export const dynamic = "force-dynamic";
+
 export default async function AuthorPage({ params }: { params: Promise<{ author: string }> }) {
   const { author: encodedAuthor } = await params;
   let author = encodedAuthor;

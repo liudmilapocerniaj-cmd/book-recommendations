@@ -2,6 +2,8 @@ import Link from "next/link";
 import { authorInitial, authorLetters, uniqueAuthors } from "@/lib/authors";
 import { loadAuthorRecommendations } from "@/lib/author-recommendations";
 
+export const dynamic = "force-dynamic";
+
 export default async function AuthorsPage() {
   let authors: string[];
   try {

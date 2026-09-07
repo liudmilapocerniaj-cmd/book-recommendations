@@ -4,6 +4,8 @@ import { uiErrorMessage } from "@/lib/ui-error-message";
 import { RecommendationSearch } from "@/components/recommendation-search";
 import { loadProfileNames } from "@/lib/public-profiles";
 
+export const dynamic = "force-dynamic";
+
 export default async function Home() {
   const { data, error } = await supabase
     .from("recommendations")

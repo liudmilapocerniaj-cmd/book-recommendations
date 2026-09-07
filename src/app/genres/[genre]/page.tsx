@@ -6,6 +6,8 @@ import { decodeGenre } from "@/lib/genres";
 import { loadGenreRecommendations } from "@/lib/genre-recommendations";
 import { loadProfileNames } from "@/lib/public-profiles";
 
+export const dynamic = "force-dynamic";
+
 export default async function GenrePage({ params }: { params: Promise<{ genre: string }> }) {
   const genre = decodeGenre((await params).genre);
   let books;

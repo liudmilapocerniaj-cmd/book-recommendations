@@ -6,6 +6,8 @@ import { supabase } from "@/lib/supabase";
 
 type Recommendation = { id: string; book_title: string; book_author: string; description: string; cover_url: string | null; genre: string | null };
 
+export const dynamic = "force-dynamic";
+
 export default async function PublicProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {

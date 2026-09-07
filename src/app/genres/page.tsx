@@ -2,6 +2,8 @@ import Link from "next/link";
 import { genres } from "@/lib/genres";
 import { loadGenreRecommendations } from "@/lib/genre-recommendations";
 
+export const dynamic = "force-dynamic";
+
 export default async function GenresPage() {
   let available: string[] = [];
   let failed = false;
