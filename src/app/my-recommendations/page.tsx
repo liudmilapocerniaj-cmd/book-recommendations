@@ -6,8 +6,6 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { uiErrorMessage } from "@/lib/ui-error-message";
 import { BookCover } from "@/components/book-cover";
-import { loadProfileNames } from "@/lib/public-profiles";
-import { Recommender } from "@/components/recommender";
 import { GenreLabel } from "@/components/genre-label";
 
 type Recommendation = {
@@ -29,7 +27,6 @@ export default function MyRecommendationsPage() {
   const [signedIn, setSignedIn] = useState(false);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
-  const [profileNames, setProfileNames] = useState<Record<string, string>>({});
 
   useEffect(() => {
     let active = true;
@@ -52,9 +49,6 @@ export default function MyRecommendationsPage() {
 
         if (!isCurrent()) return;
         if (error) throw error;
-        const names = await loadProfileNames([authData.user.id]);
-        if (!isCurrent()) return;
-        setProfileNames(names);
         setRecommendations(data ?? []);
       } catch {
         if (isCurrent()) {
@@ -70,7 +64,6 @@ export default function MyRecommendationsPage() {
       clearTimeout(timer);
       // Clear the previous account's rows immediately, including on logout.
       setRecommendations([]);
-      setProfileNames({});
       setSignedIn(false);
       setErrorMessage("");
       setLoading(Boolean(session));
@@ -117,7 +110,7 @@ export default function MyRecommendationsPage() {
   }
 
   return (
-    <main className="recommendations-page">
+    <main className="recommendations-page my-recommendations-page">
       <header className="homepage-header">
         <Link href="/" className="auth-link">← Visos rekomendacijos</Link>
       </header>
@@ -139,7 +132,6 @@ export default function MyRecommendationsPage() {
           <p className="book-author">{book.book_author}</p>
           <GenreLabel genre={book.genre} />
           <p className="book-description">{book.description}</p>
-          <Recommender userId={book.user_id} name={profileNames[book.user_id]} />
           <div className="recommendation-actions">
             <Link href={`/recommendations/${book.id}/edit`} className="auth-link">Redaguoti</Link>
             <button type="button" className="auth-link" disabled={deletingId !== null}

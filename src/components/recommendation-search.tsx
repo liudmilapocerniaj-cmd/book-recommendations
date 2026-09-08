@@ -84,7 +84,7 @@ export function RecommendationSearch({ recommendations, profileNames }: { recomm
           </select>
         </div>
       </div>
-      <div aria-live="polite" aria-atomic="false">
+      <div className="recommendation-grid" aria-live="polite" aria-atomic="false">
         {matches.length === 0 ? (
           <p>{query ? "Rekomendacijų pagal jūsų paiešką nerasta." : "Rekomendacijų dar nėra."}</p>
         ) : visible.map((book) => (
@@ -94,7 +94,7 @@ export function RecommendationSearch({ recommendations, profileNames }: { recomm
             <h3 className="book-title"><Link className="card-detail-link" href={`/recommendations/${book.id}`}>{book.book_title}</Link></h3>
             <p className="book-author">{book.book_author}</p>
             <GenreLabel genre={book.genre} />
-            <p className="book-description">{book.description}</p>
+            <p className="book-description"><span className="book-description-text">{book.description}</span></p>
             <Recommender userId={book.user_id} name={profileNames[book.user_id]} />
             </div>
           </div>

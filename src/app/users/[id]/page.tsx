@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { BookCover } from "@/components/book-cover";
-import { Recommender } from "@/components/recommender";
 import { GenreLabel } from "@/components/genre-label";
 import { supabase } from "@/lib/supabase";
 
@@ -28,7 +27,7 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
     if (count !== null && recommendations.length >= count) break;
   }
   return (
-    <main className="recommendations-page">
+    <main className="recommendations-page public-profile-page">
       <header className="homepage-header"><Link href="/" className="auth-link">← Grįžti į rekomendacijas</Link></header>
       <header className="public-profile-header">
         <span className="profile-initial" aria-hidden="true">
@@ -37,7 +36,7 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
         <div className="public-profile-summary">
           <h1>{name}</h1>
           {profileError && <p role="alert">Nepavyko įkelti profilio informacijos.</p>}
-          {profile?.bio && <p className="book-description">{profile.bio}</p>}
+          {profile?.bio && <p className="profile-bio">{profile.bio}</p>}
           {!loadFailed && <p className="profile-count">
             {recommendations.length} {new Intl.PluralRules("lt").select(recommendations.length) === "one"
               ? "rekomendacija"
@@ -55,7 +54,6 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
             <p className="book-author">{book.book_author}</p>
             <GenreLabel genre={book.genre} />
             <p className="book-description">{book.description}</p>
-            <Recommender userId={id} name={name} />
           </div>
         </article>
       ))}
