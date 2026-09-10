@@ -56,7 +56,7 @@ export function SaveRecommendationButton({
         type="button"
         className="save-recommendation-button"
         aria-pressed={saved}
-        disabled={!hasMounted || pending || !ready}
+        disabled={hasMounted && (pending || !ready)}
         onClick={handleClick}
       >
         {saved ? "✓ Išsaugota" : "♡ Noriu perskaityti"}

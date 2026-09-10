@@ -356,7 +356,7 @@ a {
   justify-content: center;
   gap: var(--space-3);
   padding: var(--space-3);
-  color: var(--color-text-secondary);
+  color: var(--color-text-muted);
   font-size: 0.8125rem;
   text-align: center;
 }
