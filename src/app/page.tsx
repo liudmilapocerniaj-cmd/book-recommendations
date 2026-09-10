@@ -3,6 +3,7 @@ import { supabase } from "@/lib/supabase";
 import { uiErrorMessage } from "@/lib/ui-error-message";
 import { RecommendationSearch } from "@/components/recommendation-search";
 import { loadProfileNames } from "@/lib/public-profiles";
+import { ReadingListNavLink } from "@/components/reading-list-nav-link";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +24,7 @@ export default async function Home() {
           <Link href="/my-recommendations" className="nav-link">
             Mano rekomendacijos
           </Link>
+          <ReadingListNavLink />
           <Link href="/recommendations/new" className="nav-link nav-recommend">
             + Rekomenduoti
           </Link>

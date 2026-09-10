@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { BookCover } from "@/components/book-cover";
 import { GenreLabel } from "@/components/genre-label";
+import { SaveRecommendationButton } from "@/components/save-recommendation-button";
 import { supabase } from "@/lib/supabase";
 
 type Recommendation = { id: string; book_title: string; book_author: string; description: string; cover_url: string | null; genre: string | null };
@@ -54,6 +55,7 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
             <p className="book-author">{book.book_author}</p>
             <GenreLabel genre={book.genre} />
             <p className="book-description">{book.description}</p>
+            <SaveRecommendationButton recommendationId={book.id} />
           </div>
         </article>
       ))}

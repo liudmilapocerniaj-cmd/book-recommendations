@@ -5,6 +5,7 @@ import Link from "next/link";
 import { BookCover } from "@/components/book-cover";
 import { Recommender } from "@/components/recommender";
 import { GenreLabel } from "@/components/genre-label";
+import { SaveRecommendationButton } from "@/components/save-recommendation-button";
 
 type Recommendation = {
   id: string;
@@ -96,6 +97,7 @@ export function RecommendationSearch({ recommendations, profileNames }: { recomm
             <GenreLabel genre={book.genre} />
             <p className="book-description"><span className="book-description-text">{book.description}</span></p>
             <Recommender userId={book.user_id} name={profileNames[book.user_id]} />
+            <SaveRecommendationButton recommendationId={book.id} />
             </div>
           </div>
         ))}

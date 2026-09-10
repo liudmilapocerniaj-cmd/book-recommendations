@@ -3,6 +3,7 @@ import { BookCover } from "@/components/book-cover";
 import { loadAuthorRecommendations } from "@/lib/author-recommendations";
 import { loadProfileNames } from "@/lib/public-profiles";
 import { Recommender } from "@/components/recommender";
+import { SaveRecommendationButton } from "@/components/save-recommendation-button";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +34,7 @@ export default async function AuthorPage({ params }: { params: Promise<{ author:
             <p className="book-author">{book.book_author}</p>
             <p className="book-description">{book.description}</p>
             <Recommender userId={book.user_id} name={names[book.user_id]} />
+            <SaveRecommendationButton recommendationId={book.id} />
           </div>
         </div>
       ))}

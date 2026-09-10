@@ -937,6 +937,63 @@ a {
   color: #a12626;
 }
 
+.save-recommendation {
+  position: relative;
+  z-index: 1;
+  margin-top: var(--space-3);
+}
+
+.save-recommendation-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .save-recommendation-button {
+    transition: none;
+  }
+}
+
+.save-recommendation-button:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--color-primary) 35%, var(--color-surface));
+  color: var(--color-primary);
+}
+
+.save-recommendation-button[aria-pressed="true"] {
+  border-color: color-mix(in srgb, var(--color-primary) 35%, var(--color-surface));
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.save-recommendation-button:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.save-recommendation-button:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+.save-recommendation-error {
+  margin-top: var(--space-2);
+  color: #a12626;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
 .recommendation-actions {
   display: flex;
   gap: var(--space-5);

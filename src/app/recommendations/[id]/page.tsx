@@ -6,6 +6,7 @@ import { uiErrorMessage } from "@/lib/ui-error-message";
 import { loadProfileNames } from "@/lib/public-profiles";
 import { Recommender } from "@/components/recommender";
 import { GenreLabel } from "@/components/genre-label";
+import { SaveRecommendationButton } from "@/components/save-recommendation-button";
 
 export const dynamic = "force-dynamic";
 
@@ -50,6 +51,7 @@ export default async function RecommendationPage({ params }: { params: Promise<{
           <p className="book-description">{book.description}</p>
           <GenreLabel genre={book.genre} />
           <Recommender userId={book.user_id} name={names[book.user_id]} />
+          <SaveRecommendationButton recommendationId={book.id} />
         </div>
       </article>
     </main>
