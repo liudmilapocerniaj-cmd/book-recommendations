@@ -3,7 +3,7 @@ import { supabase } from "@/lib/supabase";
 import { uiErrorMessage } from "@/lib/ui-error-message";
 import { RecommendationSearch } from "@/components/recommendation-search";
 import { loadProfileNames } from "@/lib/public-profiles";
-import { ReadingListNavLink } from "@/components/reading-list-nav-link";
+import { SiteHeaderNav } from "@/components/site-header-nav";
 
 export const dynamic = "force-dynamic";
 
@@ -17,21 +17,7 @@ export default async function Home() {
     <main className="recommendations-page discovery-page">
       <header className="homepage-header discovery-header">
         <Link href="/" className="site-brand">Knygų rekomendacijos<span>Skaitytojas skaitytojui</span></Link>
-        <nav aria-label="Pagrindinė navigacija">
-          <Link href="/" className="nav-link" aria-current="page">Atrasti</Link>
-          <Link href="/authors" className="nav-link">Autoriai</Link>
-          <Link href="/genres" className="nav-link">Žanrai</Link>
-          <Link href="/my-recommendations" className="nav-link">
-            Mano rekomendacijos
-          </Link>
-          <ReadingListNavLink />
-          <Link href="/recommendations/new" className="nav-link nav-recommend">
-            + Rekomenduoti
-          </Link>
-          <Link href="/login" className="nav-link">
-            Mano paskyra
-          </Link>
-        </nav>
+        <SiteHeaderNav />
       </header>
       <section className="discovery-hero" aria-labelledby="hero-title">
         <h1 id="hero-title">Atrask kitą knygą, kurios pats nebūtum pasirinkęs.</h1>
