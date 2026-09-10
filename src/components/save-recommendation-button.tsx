@@ -1,9 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { useSavedRecommendations } from "@/lib/saved-recommendations-context";
 import { uiErrorMessage } from "@/lib/ui-error-message";
+
+function subscribeNoop() {
+  return () => {};
+}
+
+// The server always renders as signed-out (no access to browser auth storage).
+// getServerSnapshot reports "not mounted" for both the SSR render and the client's
+// first hydration pass, then the client-only getSnapshot flips it after mount, so
+// the very first client render matches the server HTML exactly.
+function useHasMounted() {
+  return useSyncExternalStore(subscribeNoop, () => true, () => false);
+}
 
 export function SaveRecommendationButton({
   recommendationId,
@@ -16,7 +28,8 @@ export function SaveRecommendationButton({
   const { userId, ready, savedIds, toggleSaved } = useSavedRecommendations();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
-  const saved = savedIds.has(recommendationId);
+  const hasMounted = useHasMounted();
+  const saved = hasMounted && savedIds.has(recommendationId);
 
   async function handleClick() {
     if (pending || !ready) return;
@@ -43,7 +56,7 @@ export function SaveRecommendationButton({
         type="button"
         className="save-recommendation-button"
         aria-pressed={saved}
-        disabled={pending || !ready}
+        disabled={!hasMounted || pending || !ready}
         onClick={handleClick}
       >
         {saved ? "✓ Išsaugota" : "♡ Noriu perskaityti"}

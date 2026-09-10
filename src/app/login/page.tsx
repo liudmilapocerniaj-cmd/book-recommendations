@@ -2,12 +2,14 @@
 
 import Link from "next/link";
 import { useEffect, useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { uiErrorMessage } from "@/lib/ui-error-message";
 import { PasswordInput } from "@/components/password-input";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [registering, setRegistering] = useState(false);
@@ -16,6 +18,7 @@ export default function LoginPage() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -26,6 +29,10 @@ export default function LoginPage() {
     );
     return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    router.prefetch("/");
+  }, [router]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -43,11 +50,17 @@ export default function LoginPage() {
         : await supabase.auth.signInWithPassword(credentials);
 
       if (error) throw error;
-      setUser(data.user && data.session ? data.user : null);
       setPassword("");
-      setMessage(registering && !data.session
-        ? "Prieš prisijungdami patvirtinkite el. pašto adresą – paspauskite gautame laiške esančią nuorodą."
-        : "Sėkmingai prisijungėte.");
+
+      if (registering && !data.session) {
+        setUser(null);
+        setMessage("Prieš prisijungdami patvirtinkite el. pašto adresą – paspauskite gautame laiške esančią nuorodą.");
+        return;
+      }
+
+      setUser(data.user ?? null);
+      setIsRedirecting(true);
+      router.replace(registering ? "/profile" : "/");
     } catch (error) {
       setErrorMessage(uiErrorMessage(error, "Nepavyko prisijungti arba sukurti paskyros. Bandykite dar kartą."));
     } finally {
@@ -78,7 +91,7 @@ export default function LoginPage() {
       <Link href="/" className="auth-link">← Grįžti į rekomendacijas</Link>
       <h1>{user ? "Mano paskyra" : registering ? "Sukurti paskyrą" : "Prisijungti"}</h1>
       <section className="recommendation-card auth-card" aria-label="Prisijungimas ir paskyra">
-        {!ready ? <p role="status">Tikrinama, ar esate prisijungę…</p> : user ? (
+        {isRedirecting ? <p role="status">Prisijungiama…</p> : !ready ? <p role="status">Tikrinama, ar esate prisijungę…</p> : user ? (
           <>
             <p>Esate prisijungę kaip <strong>{user.email}</strong></p>
             <p className="auth-message"><Link href="/profile" className="auth-link">Redaguoti viešą profilį</Link></p>
