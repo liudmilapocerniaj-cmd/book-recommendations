@@ -2,11 +2,21 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ReadingListNavLink } from "@/components/reading-list-nav-link";
 import { NotificationsNavLink } from "@/components/notifications-nav-link";
 
-export function SiteHeaderNav() {
+export function SiteHeaderNav({ recommendationIds }: { recommendationIds: string[] }) {
   const [open, setOpen] = useState(false);
+  const router = useRouter();
+
+  function openRandomRecommendation() {
+    if (recommendationIds.length === 0) return;
+
+    const id = recommendationIds[Math.floor(Math.random() * recommendationIds.length)];
+    setOpen(false);
+    router.push(`/recommendations/${id}`);
+  }
 
   return (
     <>
@@ -25,7 +35,14 @@ export function SiteHeaderNav() {
       </button>
       <nav id="site-nav" aria-label="Pagrindinė navigacija" className={open ? "nav-open" : undefined}
         onClick={() => setOpen(false)}>
-        <Link href="/" className="nav-link" aria-current="page">Atrasti</Link>
+        <button
+          type="button"
+          className="nav-link nav-action"
+          disabled={recommendationIds.length === 0}
+          onClick={openRandomRecommendation}
+        >
+          Atsitiktinė knyga
+        </button>
         <Link href="/authors" className="nav-link">Autoriai</Link>
         <Link href="/genres" className="nav-link">Žanrai</Link>
         <Link href="/my-recommendations" className="nav-link">

@@ -465,6 +465,57 @@ a {
   text-underline-offset: 6px;
 }
 
+.nav-action {
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.nav-action:hover:not(:disabled) {
+  color: var(--color-primary);
+}
+
+.nav-action:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.nav-action:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+.scroll-to-top-button {
+  position: fixed;
+  right: max(var(--space-5), env(safe-area-inset-right));
+  bottom: max(var(--space-5), env(safe-area-inset-bottom));
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--color-primary-hover);
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: var(--color-surface);
+  box-shadow: 0 2px 8px rgb(36 37 33 / 16%);
+  font: inherit;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.scroll-to-top-button:hover {
+  background: var(--color-primary-hover);
+}
+
+.scroll-to-top-button:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
 .nav-recommend {
   padding: 0 14px;
   border: 1px solid color-mix(in srgb, var(--color-primary) 35%, var(--color-surface));

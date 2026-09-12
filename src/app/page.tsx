@@ -4,6 +4,7 @@ import { uiErrorMessage } from "@/lib/ui-error-message";
 import { RecommendationSearch } from "@/components/recommendation-search";
 import { loadProfileNames } from "@/lib/public-profiles";
 import { SiteHeaderNav } from "@/components/site-header-nav";
+import { ScrollToTopButton } from "@/components/scroll-to-top-button";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +18,7 @@ export default async function Home() {
     <main className="recommendations-page discovery-page">
       <header className="homepage-header discovery-header">
         <Link href="/" className="site-brand">Knygų rekomendacijos<span>Skaitytojas skaitytojui</span></Link>
-        <SiteHeaderNav />
+        <SiteHeaderNav recommendationIds={(data ?? []).map((book) => book.id)} />
       </header>
       <section className="discovery-hero" aria-labelledby="hero-title">
         <h1 id="hero-title">Atrask kitą knygą, kurios pats nebūtum pasirinkęs.</h1>
@@ -31,6 +32,7 @@ export default async function Home() {
           <RecommendationSearch recommendations={data} profileNames={profileNames} />
         )}
       </section>
+      <ScrollToTopButton />
     </main>
   );
 }
