@@ -9,6 +9,8 @@ import type { Comment } from "@/lib/comments";
 
 const MAX_LENGTH = 1000;
 const COLLAPSED_REPLY_LIMIT = 3;
+const INITIAL_THREAD_LIMIT = 5;
+const THREAD_PAGE_SIZE = 5;
 
 function subscribeNoop() {
   return () => {};
@@ -54,15 +56,20 @@ export function CommentsSection({
   const [submitError, setSubmitError] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<Comment | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editContent, setEditContent] = useState("");
   const [editSubmitting, setEditSubmitting] = useState(false);
   const [editError, setEditError] = useState("");
   const [expandedThreadIds, setExpandedThreadIds] = useState<Set<string>>(new Set());
+  const [visibleThreadLimit, setVisibleThreadLimit] = useState(INITIAL_THREAD_LIMIT);
   const submittingRef = useRef(false);
   const deletingRef = useRef(false);
   const editSubmittingRef = useRef(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const deleteDialogRef = useRef<HTMLDialogElement>(null);
+  const deleteCancelRef = useRef<HTMLButtonElement>(null);
+  const deleteTriggerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -75,6 +82,17 @@ export function CommentsSection({
   useEffect(() => {
     if (replyTarget) textareaRef.current?.focus();
   }, [replyTarget]);
+
+  useEffect(() => {
+    const dialog = deleteDialogRef.current;
+    if (!dialog) return;
+    if (deleteTarget && !dialog.open) {
+      dialog.showModal();
+      deleteCancelRef.current?.focus();
+    } else if (!deleteTarget && dialog.open) {
+      dialog.close();
+    }
+  }, [deleteTarget]);
 
   const showForm = hasMounted && ready && Boolean(userId);
   const trimmedLength = content.trim().length;
@@ -110,6 +128,23 @@ export function CommentsSection({
     const replyCount = items.filter((item) => item.id !== item.thread_id && item.deleted_at === null).length;
     return count + rootCount + replyCount;
   }, 0);
+
+  // Filter before slicing so deleted/missing roots without live replies
+  // never consume a visible slot. Keep the existing thread order.
+  const visibleThreads = threadOrder.map((threadId) => {
+    const items = threadsById.get(threadId) ?? [];
+    // The root may be physically missing; surviving replies still belong
+    // to this thread through their permanent thread_id.
+    const root = items.find((item) => item.id === item.thread_id) ?? null;
+    const visibleReplies = items.filter((item) => item.id !== item.thread_id && item.deleted_at === null);
+    return { threadId, root, visibleReplies };
+  }).filter(({ root, visibleReplies }) => (root !== null && root.deleted_at === null) || visibleReplies.length > 0);
+
+  const canCollapseThreads = Math.min(visibleThreadLimit, visibleThreads.length) > INITIAL_THREAD_LIMIT;
+  // Collapsing must keep an active root or reply editor and its draft visible.
+  const wouldHideEditingThread = editingId !== null && visibleThreads.slice(INITIAL_THREAD_LIMIT).some(
+    ({ root, visibleReplies }) => root?.id === editingId || visibleReplies.some((reply) => reply.id === editingId)
+  );
 
   function startReply(comment: Comment) {
     setReplyTarget({ threadId: comment.thread_id, targetId: comment.id, authorName: names[comment.user_id] || "Skaitytojas" });
@@ -172,6 +207,11 @@ export function CommentsSection({
         .single();
       if (error) throw error;
       setComments((rows) => [...rows, data]);
+      if (data.id === data.thread_id) {
+        // New roots append after the existing visible threads. Reveal up
+        // to that position without reducing a limit already expanded.
+        setVisibleThreadLimit((limit) => Math.max(limit, visibleThreads.length + 1));
+      }
       // Make sure a newly posted reply is never immediately hidden behind
       // "Rodyti dar ... atsakymus" in its own thread.
       setExpandedThreadIds((prev) => new Set(prev).add(data.thread_id));
@@ -189,9 +229,22 @@ export function CommentsSection({
     }
   }
 
-  async function handleDelete(comment: Comment) {
-    if (deletingRef.current || !userId) return;
-    if (!window.confirm("Ištrinti šį komentarą? Šio veiksmo atšaukti negalima.")) return;
+  function startDelete(comment: Comment, trigger: HTMLButtonElement) {
+    if (deletingRef.current) return;
+    deleteTriggerRef.current = trigger;
+    setDeleteError("");
+    setDeleteTarget(comment);
+  }
+
+  function cancelDelete() {
+    if (deletingRef.current) return;
+    setDeleteTarget(null);
+    setDeleteError("");
+  }
+
+  async function handleDelete() {
+    const comment = deleteTarget;
+    if (deletingRef.current || !userId || !comment) return;
     deletingRef.current = true;
     setDeletingId(comment.id);
     setDeleteError("");
@@ -205,6 +258,7 @@ export function CommentsSection({
         .single();
       if (error) throw error;
       setComments((rows) => rows.map((row) => (row.id === comment.id ? { ...row, deleted_at: data.deleted_at } : row)));
+      setDeleteTarget(null);
     } catch (error) {
       setDeleteError(uiErrorMessage(error, "Nepavyko ištrinti komentaro. Bandykite dar kartą."));
     } finally {
@@ -330,7 +384,7 @@ export function CommentsSection({
                 type="button"
                 className="auth-link comment-delete"
                 disabled={deletingId !== null}
-                onClick={() => handleDelete(comment)}
+                onClick={(event) => startDelete(comment, event.currentTarget)}
               >
                 {deletingId === comment.id ? "Trinama…" : "Ištrinti"}
               </button>
@@ -349,16 +403,7 @@ export function CommentsSection({
         <p className="comments-empty">Komentarų dar nėra. Būkite pirmas, kuris pasidalins mintimis.</p>
       ) : (
         <ul className="comments-list">
-          {threadOrder.map((threadId) => {
-            const items = threadsById.get(threadId) ?? [];
-            // The root is the item whose id equals the thread's id. It may
-            // be absent entirely: physically deleted because its author's
-            // account was removed (thread_id survives that deletion; the
-            // row itself does not).
-            const root = items.find((item) => item.id === item.thread_id) ?? null;
-            const visibleReplies = items.filter((item) => item.id !== item.thread_id && item.deleted_at === null);
-            if ((!root || root.deleted_at !== null) && visibleReplies.length === 0) return null;
-
+          {visibleThreads.slice(0, visibleThreadLimit).map(({ threadId, root, visibleReplies }) => {
             // A reply currently being edited must never be hidden by a
             // collapse: if it sits beyond the collapsed slice, treat this
             // thread as expanded regardless of expandedThreadIds, so the
@@ -404,7 +449,29 @@ export function CommentsSection({
           })}
         </ul>
       )}
-      {deleteError && <p className="auth-error" role="alert">{deleteError}</p>}
+      {visibleThreads.length > INITIAL_THREAD_LIMIT && (
+        <div className="comment-actions">
+          {visibleThreadLimit < visibleThreads.length && (
+            <button
+              type="button"
+              className="comment-toggle-replies"
+              onClick={() => setVisibleThreadLimit((limit) => limit + THREAD_PAGE_SIZE)}
+            >
+              Rodyti daugiau komentarų
+            </button>
+          )}
+          {canCollapseThreads && (
+            <button
+              type="button"
+              className="comment-toggle-replies"
+              disabled={wouldHideEditingThread}
+              onClick={() => setVisibleThreadLimit(INITIAL_THREAD_LIMIT)}
+            >
+              Rodyti mažiau
+            </button>
+          )}
+        </div>
+      )}
 
       <div className="comment-form-wrapper">
         <h3 id="comment-form-heading">Parašyti komentarą</h3>
@@ -442,6 +509,45 @@ export function CommentsSection({
           <p>Norėdami komentuoti, <Link href="/login" className="auth-link">prisijunkite</Link>.</p>
         )}
       </div>
+      <dialog
+        ref={deleteDialogRef}
+        className="comment-delete-dialog"
+        aria-labelledby="comment-delete-title"
+        aria-describedby="comment-delete-description"
+        aria-busy={deletingId !== null}
+        onCancel={(event) => {
+          event.preventDefault();
+          cancelDelete();
+        }}
+        onClose={() => {
+          // A successful deletion removes its trigger; return to the
+          // composer then, or to the original button after cancellation.
+          if (deleteTriggerRef.current?.isConnected) {
+            deleteTriggerRef.current.focus();
+          } else {
+            textareaRef.current?.focus();
+          }
+        }}
+      >
+        <h2 id="comment-delete-title">Ištrinti komentarą?</h2>
+        <p id="comment-delete-description">
+          Ar tikrai norite ištrinti šį komentarą? Šio veiksmo atšaukti negalima.
+        </p>
+        {deleteError && <p className="auth-error" role="alert">{deleteError}</p>}
+        <div className="comment-delete-dialog-actions">
+          <button ref={deleteCancelRef} type="button" disabled={deletingId !== null} onClick={cancelDelete}>
+            Atšaukti
+          </button>
+          <button
+            type="button"
+            className="comment-delete-dialog-confirm"
+            disabled={deletingId !== null}
+            onClick={() => void handleDelete()}
+          >
+            {deletingId !== null ? "Trinama…" : "Ištrinti"}
+          </button>
+        </div>
+      </dialog>
     </section>
   );
 }

@@ -1159,6 +1159,79 @@ a {
   font-size: 0.8125rem;
 }
 
+.comment-delete-dialog {
+  width: min(440px, calc(100% - 32px));
+  max-height: calc(100% - 32px);
+  margin: auto;
+  padding: var(--space-5);
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: 0 16px 48px rgb(36 37 33 / 16%);
+}
+
+.comment-delete-dialog::backdrop {
+  background: rgb(36 37 33 / 28%);
+}
+
+.comment-delete-dialog h2 {
+  font-size: 1.25rem;
+  line-height: 1.4;
+}
+
+.comment-delete-dialog > p {
+  margin-top: var(--space-3);
+  line-height: 1.6;
+}
+
+.comment-delete-dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+}
+
+.comment-delete-dialog-actions button {
+  min-height: 44px;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-muted);
+  color: var(--color-primary);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.comment-delete-dialog-actions button:hover:not(:disabled) {
+  background: var(--color-primary-soft);
+}
+
+.comment-delete-dialog-actions .comment-delete-dialog-confirm {
+  border-color: #805247;
+  background: #805247;
+  color: #ffffff;
+}
+
+.comment-delete-dialog-actions .comment-delete-dialog-confirm:hover:not(:disabled) {
+  background: #694238;
+  border-color: #694238;
+}
+
+.comment-delete-dialog-actions button:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.comment-delete-dialog-actions button:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
 .comment-edited-label {
   font-style: italic;
 }
