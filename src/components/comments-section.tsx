@@ -53,8 +53,13 @@ export function CommentsSection({
   const [submitError, setSubmitError] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editContent, setEditContent] = useState("");
+  const [editSubmitting, setEditSubmitting] = useState(false);
+  const [editError, setEditError] = useState("");
   const submittingRef = useRef(false);
   const deletingRef = useRef(false);
+  const editSubmittingRef = useRef(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -72,6 +77,8 @@ export function CommentsSection({
   const showForm = hasMounted && ready && Boolean(userId);
   const trimmedLength = content.trim().length;
   const overLimit = trimmedLength > MAX_LENGTH;
+  const editTrimmedLength = editContent.trim().length;
+  const editOverLimit = editTrimmedLength > MAX_LENGTH;
 
   // Comments are grouped by thread_id, not by "parent_id is null": parent_id
   // can become null for a surviving reply once its thread's root row is
@@ -147,7 +154,7 @@ export function CommentsSection({
           parent_id: replyTarget?.threadId ?? null,
           reply_to_comment_id: replyTarget?.targetId ?? null,
         })
-        .select("id, user_id, content, created_at, parent_id, deleted_at, reply_to_comment_id, thread_id")
+        .select("id, user_id, content, created_at, parent_id, deleted_at, reply_to_comment_id, thread_id, edited_at")
         .single();
       if (error) throw error;
       setComments((rows) => [...rows, data]);
@@ -189,6 +196,134 @@ export function CommentsSection({
     }
   }
 
+  function startEdit(comment: Comment) {
+    setEditingId(comment.id);
+    setEditContent(comment.content);
+    setEditError("");
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setEditContent("");
+    setEditError("");
+  }
+
+  async function handleSaveEdit(comment: Comment) {
+    if (editSubmittingRef.current || !userId) return;
+    const trimmed = editContent.trim();
+    if (!trimmed) {
+      setEditError("Įveskite komentarą.");
+      return;
+    }
+    if (trimmed.length > MAX_LENGTH) {
+      setEditError("Komentaras per ilgas. Sutrumpinkite iki 1000 simbolių.");
+      return;
+    }
+    editSubmittingRef.current = true;
+    setEditSubmitting(true);
+    setEditError("");
+    try {
+      const { data, error } = await supabase
+        .from("comments")
+        .update({ content: trimmed })
+        .eq("id", comment.id)
+        .eq("user_id", userId)
+        .select("id, content, edited_at")
+        .single();
+      if (error) throw error;
+      setComments((rows) =>
+        rows.map((row) => (row.id === comment.id ? { ...row, content: data.content, edited_at: data.edited_at } : row))
+      );
+      setEditingId(null);
+      setEditContent("");
+    } catch (error) {
+      setEditError(uiErrorMessage(error, "Nepavyko išsaugoti pakeitimų. Bandykite dar kartą."));
+    } finally {
+      editSubmittingRef.current = false;
+      setEditSubmitting(false);
+    }
+  }
+
+  // Shared rendering for a root comment and for each reply: author, an
+  // optional reply-target label, the content (or an inline editor when this
+  // comment is the one being edited), the date + "Redaguota", and the
+  // Atsakyti/Redaguoti/Ištrinti action row. Editing never rebuilds the row --
+  // it is always a plain UPDATE on this same comment, so its id, parent_id,
+  // reply_to_comment_id, and thread_id (and therefore its position and
+  // reply-target label) never change.
+  function renderCommentBody(comment: Comment, replyLabel?: string) {
+    const isOwn = hasMounted && userId === comment.user_id;
+    const isEditing = editingId === comment.id;
+
+    return (
+      <>
+        <p className="comment-author">{names[comment.user_id] || "Skaitytojas"}</p>
+        {replyLabel && <p className="comment-reply-label">{replyLabel}</p>}
+        {isEditing ? (
+          <div className="comment-edit">
+            <textarea
+              value={editContent}
+              onChange={(event) => setEditContent(event.target.value)}
+              disabled={editSubmitting}
+              rows={4}
+              aria-label="Redaguoti komentarą"
+            />
+            <div className="comment-form-footer">
+              <span className={editOverLimit ? "comment-counter comment-counter-over" : "comment-counter"}>
+                {editTrimmedLength} / {MAX_LENGTH}
+              </span>
+              <div className="comment-edit-buttons">
+                <button
+                  type="button"
+                  className="auth-button"
+                  disabled={editSubmitting || editTrimmedLength === 0 || editOverLimit}
+                  onClick={() => void handleSaveEdit(comment)}
+                >
+                  {editSubmitting ? "Saugoma…" : "Išsaugoti"}
+                </button>
+                <button type="button" className="auth-link" disabled={editSubmitting} onClick={cancelEdit}>
+                  Atšaukti
+                </button>
+              </div>
+            </div>
+            {editOverLimit && <p className="auth-error" role="alert">Komentaras per ilgas. Sutrumpinkite iki 1000 simbolių.</p>}
+            {editError && <p className="auth-error" role="alert">{editError}</p>}
+          </div>
+        ) : (
+          <p className="comment-content">{comment.content}</p>
+        )}
+        <div className="comment-meta">
+          <time dateTime={comment.created_at}>{formatCommentDate(comment.created_at)}</time>
+          {comment.edited_at !== null && <span className="comment-edited-label"> · Redaguota</span>}
+        </div>
+        {!isEditing && (showForm || isOwn) && (
+          <div className="comment-actions">
+            {showForm && (
+              <button type="button" className="auth-link comment-reply" onClick={() => startReply(comment)}>
+                Atsakyti
+              </button>
+            )}
+            {isOwn && (
+              <button type="button" className="auth-link comment-edit-trigger" onClick={() => startEdit(comment)}>
+                Redaguoti
+              </button>
+            )}
+            {isOwn && (
+              <button
+                type="button"
+                className="auth-link comment-delete"
+                disabled={deletingId !== null}
+                onClick={() => handleDelete(comment)}
+              >
+                {deletingId === comment.id ? "Trinama…" : "Ištrinti"}
+              </button>
+            )}
+          </div>
+        )}
+      </>
+    );
+  }
+
   return (
     <section className="comments-section" aria-labelledby="comments-heading">
       <h2 id="comments-heading">Komentarai ({visibleCommentCount})</h2>
@@ -207,79 +342,21 @@ export function CommentsSection({
             const visibleReplies = items.filter((item) => item.id !== item.thread_id && item.deleted_at === null);
             if ((!root || root.deleted_at !== null) && visibleReplies.length === 0) return null;
 
-            const canReply = showForm && root !== null && root.deleted_at === null;
-            const canDelete = hasMounted && root !== null && root.deleted_at === null && root.user_id === userId;
-
             return (
               <li key={threadId} className="comment-item">
                 {root && root.deleted_at === null ? (
-                  <>
-                    <p className="comment-author">{names[root.user_id] || "Skaitytojas"}</p>
-                    <p className="comment-content">{root.content}</p>
-                    <div className="comment-meta">
-                      <time dateTime={root.created_at}>{formatCommentDate(root.created_at)}</time>
-                    </div>
-                    {(canReply || canDelete) && (
-                      <div className="comment-actions">
-                        {canReply && (
-                          <button type="button" className="auth-link comment-reply" onClick={() => startReply(root)}>
-                            Atsakyti
-                          </button>
-                        )}
-                        {canReply && canDelete && <span aria-hidden="true"> · </span>}
-                        {canDelete && (
-                          <button
-                            type="button"
-                            className="auth-link comment-delete"
-                            disabled={deletingId !== null}
-                            onClick={() => handleDelete(root)}
-                          >
-                            {deletingId === root.id ? "Trinama…" : "Ištrinti"}
-                          </button>
-                        )}
-                      </div>
-                    )}
-                  </>
+                  renderCommentBody(root)
                 ) : (
                   <p className="comment-deleted-placeholder">Komentaras pašalintas.</p>
                 )}
 
                 {visibleReplies.length > 0 && (
                   <ul className="comment-replies">
-                    {visibleReplies.map((reply) => {
-                      const replyCanReply = showForm;
-                      const replyCanDelete = hasMounted && userId === reply.user_id;
-                      return (
-                        <li key={reply.id} className="comment-item comment-reply-item">
-                          <p className="comment-author">{names[reply.user_id] || "Skaitytojas"}</p>
-                          <p className="comment-reply-label">{replyLabelFor(reply)}</p>
-                          <p className="comment-content">{reply.content}</p>
-                          <div className="comment-meta">
-                            <time dateTime={reply.created_at}>{formatCommentDate(reply.created_at)}</time>
-                          </div>
-                          {(replyCanReply || replyCanDelete) && (
-                            <div className="comment-actions">
-                              {replyCanReply && (
-                                <button type="button" className="auth-link comment-reply" onClick={() => startReply(reply)}>
-                                  Atsakyti
-                                </button>
-                              )}
-                              {replyCanReply && replyCanDelete && <span aria-hidden="true"> · </span>}
-                              {replyCanDelete && (
-                                <button
-                                  type="button"
-                                  className="auth-link comment-delete"
-                                  disabled={deletingId !== null}
-                                  onClick={() => handleDelete(reply)}
-                                >
-                                  {deletingId === reply.id ? "Trinama…" : "Ištrinti"}
-                                </button>
-                              )}
-                            </div>
-                          )}
-                        </li>
-                      );
-                    })}
+                    {visibleReplies.map((reply) => (
+                      <li key={reply.id} className="comment-item comment-reply-item">
+                        {renderCommentBody(reply, replyLabelFor(reply))}
+                      </li>
+                    ))}
                   </ul>
                 )}
               </li>

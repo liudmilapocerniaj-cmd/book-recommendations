@@ -9,12 +9,13 @@ export type Comment = {
   deleted_at: string | null;
   reply_to_comment_id: string | null;
   thread_id: string;
+  edited_at: string | null;
 };
 
 export async function loadComments(recommendationId: string): Promise<Comment[]> {
   const { data, error } = await supabase
     .from("comments")
-    .select("id, user_id, content, created_at, parent_id, deleted_at, reply_to_comment_id, thread_id")
+    .select("id, user_id, content, created_at, parent_id, deleted_at, reply_to_comment_id, thread_id, edited_at")
     .eq("recommendation_id", recommendationId)
     .order("created_at", { ascending: true });
   if (error) throw error;

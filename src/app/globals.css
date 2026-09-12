@@ -1136,15 +1136,31 @@ a {
 
 .comment-actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   margin-top: var(--space-2);
   color: var(--color-text-muted);
   font-size: 0.8125rem;
 }
 
+/* Separator between action buttons is purely structural (adjacent-sibling),
+   so it automatically adapts to however many of Atsakyti/Redaguoti/Ištrinti
+   are actually rendered, in any combination, with no per-pair JSX logic. */
+.comment-actions button + button::before {
+  content: "·";
+  display: inline-block;
+  margin: 0 var(--space-2);
+  color: var(--color-text-muted);
+}
+
 .comment-reply,
+.comment-edit-trigger,
 .comment-delete {
   font-size: 0.8125rem;
+}
+
+.comment-edited-label {
+  font-style: italic;
 }
 
 .comment-replies {
@@ -1252,6 +1268,45 @@ a {
 
 .comment-form-wrapper > p {
   margin-top: var(--space-3);
+}
+
+.comment-edit {
+  margin-top: var(--space-2);
+}
+
+.comment-edit textarea {
+  width: 100%;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--foreground);
+  font: inherit;
+  resize: vertical;
+  min-height: 96px;
+}
+
+.comment-edit textarea:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+.comment-edit-buttons {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.comment-edit-buttons .auth-button {
+  margin-top: 0;
+  min-height: 36px;
+  padding: 8px 16px;
+  font-size: 0.875rem;
+}
+
+.comment-edit-buttons :focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
 }
 
 .nav-badge {
