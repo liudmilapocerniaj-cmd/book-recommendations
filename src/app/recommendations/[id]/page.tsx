@@ -9,6 +9,7 @@ import { Recommender } from "@/components/recommender";
 import { GenreLabel } from "@/components/genre-label";
 import { SaveRecommendationButton } from "@/components/save-recommendation-button";
 import { CommentsSection } from "@/components/comments-section";
+import { CommentsHashScroll } from "@/components/comments-hash-scroll";
 
 export const dynamic = "force-dynamic";
 
@@ -62,6 +63,7 @@ export default async function RecommendationPage({ params }: { params: Promise<{
         </div>
       </article>
       <CommentsSection recommendationId={book.id} initialComments={comments} initialNames={commentNames} />
+      <CommentsHashScroll key={book.id} />
     </main>
   );
 }

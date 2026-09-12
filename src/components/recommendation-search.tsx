@@ -29,6 +29,13 @@ const SORT_LABELS: Record<SortOption, string> = {
 
 const PAGE_SIZE = 6;
 
+function formatCommentCount(count: number) {
+  const lastDigit = count % 10;
+  const lastTwoDigits = count % 100;
+  if (lastDigit === 0 || (lastTwoDigits >= 11 && lastTwoDigits <= 19)) return `${count} komentarų`;
+  return `${count} ${lastDigit === 1 ? "komentaras" : "komentarai"}`;
+}
+
 function sortRecommendations(books: Recommendation[], sort: SortOption) {
   const sorted = [...books];
   switch (sort) {
@@ -48,7 +55,11 @@ function sortRecommendations(books: Recommendation[], sort: SortOption) {
   return sorted;
 }
 
-export function RecommendationSearch({ recommendations, profileNames }: { recommendations: Recommendation[]; profileNames: Record<string, string> }) {
+export function RecommendationSearch({ recommendations, profileNames, commentCounts }: {
+  recommendations: Recommendation[];
+  profileNames: Record<string, string>;
+  commentCounts: Record<string, number> | null;
+}) {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<SortOption>("newest");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
@@ -96,7 +107,13 @@ export function RecommendationSearch({ recommendations, profileNames }: { recomm
             <p className="book-author">{book.book_author}</p>
             <GenreLabel genre={book.genre} />
             <p className="book-description"><span className="book-description-text">{book.description}</span></p>
-            <Recommender userId={book.user_id} name={profileNames[book.user_id]} />
+            <Recommender userId={book.user_id} name={profileNames[book.user_id]}>
+              {" · "}
+              <Link className="auth-link" href={`/recommendations/${book.id}#comments`}
+                title={commentCounts === null ? "Nepavyko įkelti komentarų skaičiaus" : undefined}>
+                {commentCounts === null ? "Komentarai" : formatCommentCount(commentCounts[book.id] ?? 0)}
+              </Link>
+            </Recommender>
             <SaveRecommendationButton recommendationId={book.id} />
             </div>
           </div>

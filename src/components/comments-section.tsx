@@ -396,7 +396,7 @@ export function CommentsSection({
   }
 
   return (
-    <section className="comments-section" aria-labelledby="comments-heading">
+    <section id="comments" className="comments-section" aria-labelledby="comments-heading">
       <h2 id="comments-heading">Komentarai ({visibleCommentCount})</h2>
 
       {visibleCommentCount === 0 ? (
