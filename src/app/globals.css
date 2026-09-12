@@ -1187,6 +1187,34 @@ a {
   font-style: italic;
 }
 
+.comment-toggle-replies-item {
+  list-style: none;
+}
+
+.comment-toggle-replies {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: var(--space-2) 0;
+  border: 0;
+  background: none;
+  color: var(--color-primary);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.comment-toggle-replies:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.comment-toggle-replies:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
 @media (max-width: 480px) {
   .comment-replies {
     padding-left: var(--space-3);

@@ -8,6 +8,7 @@ import { uiErrorMessage } from "@/lib/ui-error-message";
 import type { Comment } from "@/lib/comments";
 
 const MAX_LENGTH = 1000;
+const COLLAPSED_REPLY_LIMIT = 3;
 
 function subscribeNoop() {
   return () => {};
@@ -57,6 +58,7 @@ export function CommentsSection({
   const [editContent, setEditContent] = useState("");
   const [editSubmitting, setEditSubmitting] = useState(false);
   const [editError, setEditError] = useState("");
+  const [expandedThreadIds, setExpandedThreadIds] = useState<Set<string>>(new Set());
   const submittingRef = useRef(false);
   const deletingRef = useRef(false);
   const editSubmittingRef = useRef(false);
@@ -113,6 +115,18 @@ export function CommentsSection({
     setReplyTarget({ threadId: comment.thread_id, targetId: comment.id, authorName: names[comment.user_id] || "Skaitytojas" });
   }
 
+  function toggleThreadExpanded(threadId: string) {
+    setExpandedThreadIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(threadId)) {
+        next.delete(threadId);
+      } else {
+        next.add(threadId);
+      }
+      return next;
+    });
+  }
+
   // A reply's label names whoever it actually replies to (root or another
   // reply in the same flat thread), not always the thread's root author.
   // reply_to_comment_id can be null even though parent_id is not: its "on
@@ -158,6 +172,9 @@ export function CommentsSection({
         .single();
       if (error) throw error;
       setComments((rows) => [...rows, data]);
+      // Make sure a newly posted reply is never immediately hidden behind
+      // "Rodyti dar ... atsakymus" in its own thread.
+      setExpandedThreadIds((prev) => new Set(prev).add(data.thread_id));
       setContent("");
       setReplyTarget(null);
       if (!names[userId]) {
@@ -342,6 +359,17 @@ export function CommentsSection({
             const visibleReplies = items.filter((item) => item.id !== item.thread_id && item.deleted_at === null);
             if ((!root || root.deleted_at !== null) && visibleReplies.length === 0) return null;
 
+            // A reply currently being edited must never be hidden by a
+            // collapse: if it sits beyond the collapsed slice, treat this
+            // thread as expanded regardless of expandedThreadIds, so the
+            // open edit form (and its unsaved text) never disappears.
+            const editingReplyIndex = visibleReplies.findIndex((reply) => reply.id === editingId);
+            const hasHiddenEditingReply = editingReplyIndex >= COLLAPSED_REPLY_LIMIT;
+            const isExpanded = expandedThreadIds.has(threadId) || hasHiddenEditingReply;
+            const hasMoreThanLimit = visibleReplies.length > COLLAPSED_REPLY_LIMIT;
+            const displayedReplies = isExpanded ? visibleReplies : visibleReplies.slice(0, COLLAPSED_REPLY_LIMIT);
+            const hiddenReplyCount = visibleReplies.length - COLLAPSED_REPLY_LIMIT;
+
             return (
               <li key={threadId} className="comment-item">
                 {root && root.deleted_at === null ? (
@@ -352,11 +380,23 @@ export function CommentsSection({
 
                 {visibleReplies.length > 0 && (
                   <ul className="comment-replies">
-                    {visibleReplies.map((reply) => (
+                    {displayedReplies.map((reply) => (
                       <li key={reply.id} className="comment-item comment-reply-item">
                         {renderCommentBody(reply, replyLabelFor(reply))}
                       </li>
                     ))}
+                    {hasMoreThanLimit && (
+                      <li className="comment-toggle-replies-item">
+                        <button
+                          type="button"
+                          className="comment-toggle-replies"
+                          aria-expanded={isExpanded}
+                          onClick={() => toggleThreadExpanded(threadId)}
+                        >
+                          {isExpanded ? "Rodyti mažiau" : `Rodyti dar ${hiddenReplyCount} atsakymų`}
+                        </button>
+                      </li>
+                    )}
                   </ul>
                 )}
               </li>
