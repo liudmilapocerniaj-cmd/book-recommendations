@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ReadingListNavLink } from "@/components/reading-list-nav-link";
+import { NotificationsNavLink } from "@/components/notifications-nav-link";
 
 export function SiteHeaderNav() {
   const [open, setOpen] = useState(false);
@@ -31,6 +32,7 @@ export function SiteHeaderNav() {
           Mano rekomendacijos
         </Link>
         <ReadingListNavLink />
+        <NotificationsNavLink />
         <Link href="/recommendations/new" className="nav-link nav-recommend">
           + Rekomenduoti
         </Link>
