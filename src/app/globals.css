@@ -1064,3 +1064,132 @@ a {
   opacity: 0.65;
   cursor: wait;
 }
+
+.comments-section {
+  margin-top: var(--space-6);
+  padding: clamp(20px, 3vw, 28px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: 0 1px 2px rgb(36 37 33 / 4%), 0 4px 16px rgb(36 37 33 / 5%);
+}
+
+.comments-section h2 {
+  font-size: clamp(1.25rem, 2.5vw, 1.5rem);
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  color: var(--color-text);
+}
+
+.comments-empty {
+  margin-top: var(--space-4);
+  color: var(--color-text-secondary);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+
+.comments-list {
+  list-style: none;
+  margin-top: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.comment-item {
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-muted);
+  overflow-wrap: anywhere;
+}
+
+.comment-author {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.comment-content {
+  margin-top: var(--space-2);
+  color: var(--color-text);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.comment-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-top: var(--space-3);
+  color: var(--color-text-muted);
+  font-size: 0.8125rem;
+}
+
+.comment-delete {
+  font-size: 0.8125rem;
+}
+
+.comment-form-wrapper {
+  margin-top: var(--space-5);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--color-border);
+}
+
+.comment-form-wrapper h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.comment-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.comment-form textarea {
+  width: 100%;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--foreground);
+  font: inherit;
+  resize: vertical;
+  min-height: 96px;
+}
+
+.comment-form textarea:focus-visible,
+.comment-delete:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+.comment-form-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.comment-counter {
+  color: var(--color-text-muted);
+  font-size: 0.8125rem;
+}
+
+.comment-counter-over {
+  color: #a12626;
+  font-weight: 600;
+}
+
+.comment-form .auth-button {
+  margin-top: 0;
+}
+
+.comment-form-wrapper > p {
+  margin-top: var(--space-3);
+}

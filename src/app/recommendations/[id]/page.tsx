@@ -4,9 +4,11 @@ import { BookCover } from "@/components/book-cover";
 import { supabase } from "@/lib/supabase";
 import { uiErrorMessage } from "@/lib/ui-error-message";
 import { loadProfileNames } from "@/lib/public-profiles";
+import { loadComments } from "@/lib/comments";
 import { Recommender } from "@/components/recommender";
 import { GenreLabel } from "@/components/genre-label";
 import { SaveRecommendationButton } from "@/components/save-recommendation-button";
+import { CommentsSection } from "@/components/comments-section";
 
 export const dynamic = "force-dynamic";
 
@@ -29,6 +31,11 @@ export default async function RecommendationPage({ params }: { params: Promise<{
   }
   if (!book) notFound();
   const names = await loadProfileNames([book.user_id]);
+
+  // The comments table may not exist yet if the migration hasn't been run; degrade
+  // to an empty list rather than failing the whole recommendation page.
+  const comments = await loadComments(book.id).catch(() => []);
+  const commentNames = await loadProfileNames(comments.map((comment) => comment.user_id));
 
   const created = book.created_at ? new Date(book.created_at) : null;
   const date = created && !Number.isNaN(created.getTime()) ? created : null;
@@ -54,6 +61,7 @@ export default async function RecommendationPage({ params }: { params: Promise<{
           <SaveRecommendationButton recommendationId={book.id} />
         </div>
       </article>
+      <CommentsSection recommendationId={book.id} initialComments={comments} initialNames={commentNames} />
     </main>
   );
 }
