@@ -1128,8 +1128,67 @@ a {
   font-size: 0.8125rem;
 }
 
+.comment-deleted-placeholder {
+  color: var(--color-text-muted);
+  font-size: 0.9375rem;
+  font-style: italic;
+}
+
+.comment-actions {
+  display: flex;
+  align-items: center;
+  margin-top: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: 0.8125rem;
+}
+
+.comment-reply,
 .comment-delete {
   font-size: 0.8125rem;
+}
+
+.comment-replies {
+  list-style: none;
+  margin-top: var(--space-3);
+  padding-left: var(--space-4);
+  border-left: 2px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.comment-reply-item {
+  padding: var(--space-3);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+}
+
+.comment-reply-label {
+  margin-top: 2px;
+  color: var(--color-text-muted);
+  font-size: 0.8125rem;
+  font-style: italic;
+}
+
+@media (max-width: 480px) {
+  .comment-replies {
+    padding-left: var(--space-3);
+  }
+}
+
+.comment-reply-target {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  margin-bottom: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-muted);
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
 }
 
 .comment-form-wrapper {
@@ -1164,7 +1223,8 @@ a {
 }
 
 .comment-form textarea:focus-visible,
-.comment-delete:focus-visible {
+.comment-actions :focus-visible,
+.comment-reply-target :focus-visible {
   outline: 3px solid var(--color-focus);
   outline-offset: 3px;
 }
